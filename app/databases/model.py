@@ -1,9 +1,9 @@
 from datetime import datetime
 from typing import Optional
 from sqlalchemy import Column,String,DateTime,Text
-from sqlalcemy.orm import declerative_base
+from sqlalcemy.orm import declarative_base
 
-Base=declerative_base()
+Base=declarative_base()
 
 class YoutubeVideos(Base):
     __tablename__="youtube_videos"
@@ -42,7 +42,7 @@ class AnthropicArticle(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
 class Digest(Base):
-    __tablename__="anthropic_articles"
+    __tablename__="digests"
     id = Column(String, primary_key=True)
     article_type = Column(String, nullable=False)
     article_id = Column(String, nullable=False)
