@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional
 from sqlalchemy import Column,String,DateTime,Text
-from sqlalcemy.orm import declarative_base
+from sqlalchemy.orm import declarative_base
 
 Base=declarative_base()
 
@@ -12,7 +12,7 @@ class YoutubeVideos(Base):
     url=Column(String,nullable=False)
     channel_id=Column(String,nullable=False)
     published_at=Column(DateTime,nullable=False)
-    decription=Column(Text)
+    description=Column(Text)
     transcript=Column(Text,nullable=True)
     created_at=Column(DateTime,default=datetime.utcnow)
 
