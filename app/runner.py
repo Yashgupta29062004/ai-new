@@ -11,7 +11,7 @@ from app.scrapers.openai import OpenAI_Scraper
 from app.scrapers.anthropic import AnthropicScraper
 from app.databases.repositry import Repository  # Matches your folder 'databases' and file 'repositry.py'
 
-def run_scraper(hours: int = 24) -> dict:
+def run_scrapers(hours: int = 24) -> dict:
     # 1. Initialize Scrapers and Repo
     youtube_scraper = YouTubeScraper()
     openai_scraper = OpenAI_Scraper()      # Fixed: Match class name in openai.py

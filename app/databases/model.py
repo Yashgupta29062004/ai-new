@@ -1,6 +1,6 @@
 from datetime import datetime
 from typing import Optional
-from sqlalchemy import Column,String,DateTime,Text
+from sqlalchemy import Column, String, DateTime, Text, Float
 from sqlalchemy.orm import declarative_base
 
 Base=declarative_base()
@@ -44,11 +44,12 @@ class AnthropicArticle(Base):
 class Digest(Base):
     __tablename__="digests"
     id = Column(String, primary_key=True)
-    article_type = Column(String, nullable=False)
+    article_type = Column(String, nullable=False)  # 'anthropic', 'openai', 'youtube'
     article_id = Column(String, nullable=False)
     url = Column(String, nullable=False)
     title = Column(String, nullable=False)
     summary = Column(Text, nullable=False)
+    score = Column(Float, nullable=True)            # Relevance score 1-10 from Gemini
     created_at = Column(DateTime, default=datetime.utcnow)
 
 
