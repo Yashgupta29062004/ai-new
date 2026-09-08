@@ -24,6 +24,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Verify required secrets
+        run: |
+          if [ -z "$DATABASE_URL" ]; then
+            echo "❌ ERROR: DATABASE_URL secret is not set in GitHub Secrets!"
+            echo "Go to: Settings → Secrets and variables → Actions → New repository secret"
+            exit 1
+          fi
+          # Print host only (safe — no password exposed)
+          echo "✅ DATABASE_URL is set. Host: $(echo $DATABASE_URL | sed 's/.*@//' | cut -d'/' -f1)"
+
+          if [ -z "$GEMINI_API_KEY" ]; then
+            echo "❌ ERROR: GEMINI_API_KEY secret is not set!"
+            exit 1
+          fi
+          echo "✅ All required secrets are present."
+
       - name: Install uv
         uses: astral-sh/setup-uv@v4
         with:
