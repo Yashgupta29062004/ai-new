@@ -11,7 +11,7 @@ services:
     dockerfilePath: ./Dockerfile
     dockerCommand: sh -c "python app/databases/create_table.py && python -m app.daily_runner"
     schedule: "30 1 * * *"   # 7:00 AM IST (01:30 UTC) daily
-    plan: free
+    plan: starter
     envVars:
       - key: DATABASE_URL
         fromDatabase:
