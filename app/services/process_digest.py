@@ -175,7 +175,7 @@ def process_digests(hours: int = 24) -> dict:
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
-    load_dotenv()
+    load_dotenv(override=False)  # Real env vars always win over .env
     print(" Starting digest generation with Gemini...")
     stats = process_digests()
     print(f"\n--- Digest Stats ---")

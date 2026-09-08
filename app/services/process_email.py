@@ -213,7 +213,7 @@ def send_digest_email(hours: int = 24, top_n: int = 10) -> dict:
 
 if __name__ == "__main__":
     from dotenv import load_dotenv
-    load_dotenv()
+    load_dotenv(override=False)  # Real env vars always win over .env
     print(" Sending digest email...")
     result = send_digest_email(hours=24, top_n=10)
     if result["success"]:

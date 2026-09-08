@@ -2,7 +2,7 @@ import logging
 from datetime import datetime
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=False)  # Real env vars (GitHub Actions secrets) always win over .env
 
 from app.runner import run_scrapers
 from app.services.process_anthropic import process_anthropic_markdown
