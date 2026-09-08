@@ -1,0 +1,35 @@
+databases:
+  - name: ai-news-db
+    databaseName: ai_news_aggregator
+    user: ai_news_user
+    plan: free
+
+services:
+  - type: cron
+    name: ai-news-pipeline
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: sh -c "python app/databases/create_table.py && python -m app.daily_runner"
+    schedule: "30 1 * * *"   # 7:00 AM IST (01:30 UTC) daily
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: ai-news-db
+          property: connectionString
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: DIGEST_EMAIL_TO
+        sync: false
+      - key: PIPELINE_HOURS
+        value: "24"
+      - key: TOP_N_DIGEST
+        value: "10"

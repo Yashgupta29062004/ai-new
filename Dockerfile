@@ -26,5 +26,5 @@ ENV PATH="/app/.venv/bin:$PATH"
 # Copy application source
 COPY . .
 
-# Default: run the full daily pipeline
-CMD ["python", "-m", "app.daily_runner"]
+# Auto-create tables (idempotent), then run the full daily pipeline
+CMD ["sh", "-c", "python app/databases/create_table.py && python -m app.daily_runner"]
