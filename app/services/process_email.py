@@ -1,4 +1,5 @@
 import os
+import ssl
 import sys
 import smtplib
 from pathlib import Path
@@ -159,18 +160,31 @@ def _render_html(digests: List[Digest], hours: int) -> str:
 
 def _send_via_smtp(smtp_host: str, smtp_port: int, smtp_user: str, smtp_password: str, email_to: str, raw_msg: str) -> None:
     """Send email via SMTP, using SMTP_SSL on port 465 or STARTTLS on port 587."""
-    if smtp_port == 465:
-        with smtplib.SMTP_SSL(smtp_host, 465, timeout=30) as server:
-            server.ehlo()
-            server.login(smtp_user, smtp_password)
-            server.sendmail(smtp_user, email_to, raw_msg)
-    else:
-        with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
-            server.ehlo()
-            server.starttls()
-            server.ehlo()
-            server.login(smtp_user, smtp_password)
-            server.sendmail(smtp_user, email_to, raw_msg)
+    ctx = ssl.create_default_context()
+    step = "connect"
+    try:
+        if smtp_port == 465:
+            with smtplib.SMTP_SSL(smtp_host, 465, local_hostname="localhost", timeout=30, context=ctx) as server:
+                step = "ehlo"
+                server.ehlo()
+                step = "login"
+                server.login(smtp_user, smtp_password)
+                step = "sendmail"
+                server.sendmail(smtp_user, email_to, raw_msg)
+        else:
+            with smtplib.SMTP(smtp_host, smtp_port, local_hostname="localhost", timeout=30) as server:
+                step = "ehlo"
+                server.ehlo()
+                step = "starttls"
+                server.starttls(context=ctx)
+                step = "ehlo_tls"
+                server.ehlo()
+                step = "login"
+                server.login(smtp_user, smtp_password)
+                step = "sendmail"
+                server.sendmail(smtp_user, email_to, raw_msg)
+    except Exception as e:
+        raise RuntimeError(f"SMTP step '{step}' on {smtp_host}:{smtp_port} failed: {e}") from e
 
 
 def send_digest_email(hours: int = 24, top_n: int = 10) -> dict:
@@ -216,7 +230,7 @@ def send_digest_email(hours: int = 24, top_n: int = 10) -> dict:
     try:
         try:
             _send_via_smtp(smtp_host, smtp_port, smtp_user, smtp_password, email_to, raw_msg)
-        except (smtplib.SMTPServerDisconnected, OSError) as first_err:
+        except Exception as first_err:
             # Fallback between port 587 (STARTTLS) and port 465 (SMTP_SSL)
             fallback_port = 465 if smtp_port != 465 else 587
             print(f" SMTP port {smtp_port} failed ({first_err}); retrying on port {fallback_port}...")
