@@ -123,7 +123,8 @@ class Repository:
     # --- DIGEST METHODS ---
 
     def get_undigested_anthropic_articles(self, hours: int = 24) -> List[AnthropicArticle]:
-        """Anthropic articles with markdown that were scraped within the last N hours and haven't been summarized."""
+        """Anthropic articles scraped within the last N hours that haven't been summarized.
+        Works with OR without markdown — description alone is enough for a digest."""
         cutoff = datetime.now(timezone.utc) - timedelta(hours=hours)
         digested_ids = (
             self.session.query(Digest.article_id)
@@ -134,7 +135,6 @@ class Repository:
             self.session.query(AnthropicArticle)
             .filter(
                 AnthropicArticle.guid.notin_(digested_ids),
-                AnthropicArticle.markdown.isnot(None),
                 AnthropicArticle.created_at >= cutoff,
             )
             .all()

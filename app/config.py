@@ -2,8 +2,9 @@ import os
 
 # ── Time window ────────────────────────────────────────────────────────────────
 # How far back the pipeline looks for new content.
+# 48 hours ensures we catch articles even if companies don't publish daily.
 # All steps (scraping, enrichment, digest, email) respect this value.
-PIPELINE_HOURS = int(os.getenv("PIPELINE_HOURS", "24"))
+PIPELINE_HOURS = int(os.getenv("PIPELINE_HOURS", "48"))
 
 # ── YouTube channels to monitor ────────────────────────────────────────────────
 YOUTUBE_CHANNELS = [

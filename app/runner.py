@@ -86,7 +86,7 @@ def run_scrapers(hours: int = 24) -> dict:
     }
 
 if __name__ == "__main__":
-    results = run_scraper(hours=24)
+    results = run_scrapers(hours=24)
     print(f"--- Scraping Complete ---")
     print(f"YouTube videos found: {len(results['youtube'])}")
     print(f"OpenAI articles found: {len(results['openai'])}")

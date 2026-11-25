@@ -68,7 +68,8 @@ def run_daily_pipeline() -> dict:
                     f"({digest_result['failed']} failed out of {digest_result['total']} total)")
         
         logger.info("\n[5/5] Generating and sending email digest...")
-        email_result = send_digest_email(hours=hours, top_n=top_n)
+        # Use a wider time window for email to catch digests just created above
+        email_result = send_digest_email(hours=max(hours, 48), top_n=top_n)
         results["email"] = email_result
         
         if email_result["success"]:

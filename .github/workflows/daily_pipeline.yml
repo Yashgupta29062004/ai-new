@@ -17,7 +17,7 @@ jobs:
       SMTP_USER: ${{ secrets.SMTP_USER }}
       SMTP_PASSWORD: ${{ secrets.SMTP_PASSWORD }}
       DIGEST_EMAIL_TO: ${{ secrets.DIGEST_EMAIL_TO }}
-      PIPELINE_HOURS: "24"
+      PIPELINE_HOURS: "48"
       TOP_N_DIGEST: "10"
 
     steps:
@@ -50,6 +50,22 @@ jobs:
 
       - name: Install dependencies
         run: uv sync --frozen --no-dev
+
+      - name: Debug environment (diagnose DATABASE_URL)
+        run: |
+          # Check if .env file exists in checkout (it shouldn't)
+          [ -f .env ] && echo "⚠️ .env file found in checkout!" && cat .env || echo "✅ No .env file in checkout"
+          # Check DATABASE_URL at the Python level
+          uv run python3 -c "
+import os
+url = os.environ.get('DATABASE_URL', 'NOT_SET')
+print(f'DATABASE_URL length  : {len(url)}')
+print(f'Starts with postgres : {url.startswith(\"postgresql\")}')
+print(f'Contains neon        : {\"neon\" in url}')
+if not url or not url.startswith(\"postgresql\"):
+    raise SystemExit('❌ DATABASE_URL is empty or invalid!')
+print('✅ DATABASE_URL looks valid')
+"
 
       - name: Create database tables
         run: uv run python app/databases/create_table.py
