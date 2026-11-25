@@ -73,9 +73,9 @@ def _summarize(client: genai.Client, title: str, content: str, source: str) -> O
             return json.loads(response.text)
         except Exception as e:
             err_str = str(e)
-            if "429" in err_str or "RESOURCE_EXHAUSTED" in err_str:
+            if any(code in err_str for code in ("429", "RESOURCE_EXHAUSTED", "503", "UNAVAILABLE")):
                 wait = RATE_LIMIT_DELAY * (2 ** attempt)  # 1.5s, 3s, 6s
-                print(f"  Rate limited. Waiting {wait:.1f}s before retry {attempt+1}/{max_retries}...")
+                print(f"  Transient Gemini error ({err_str[:60]}). Waiting {wait:.1f}s before retry {attempt+1}/{max_retries}...")
                 time.sleep(wait)
             else:
                 print(f"  Gemini error: {e}")

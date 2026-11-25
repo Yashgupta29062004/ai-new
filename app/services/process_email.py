@@ -157,16 +157,32 @@ def _render_html(digests: List[Digest], hours: int) -> str:
 </html>"""
 
 
+def _send_via_smtp(smtp_host: str, smtp_port: int, smtp_user: str, smtp_password: str, email_to: str, raw_msg: str) -> None:
+    """Send email via SMTP, using SMTP_SSL on port 465 or STARTTLS on port 587."""
+    if smtp_port == 465:
+        with smtplib.SMTP_SSL(smtp_host, 465, timeout=30) as server:
+            server.ehlo()
+            server.login(smtp_user, smtp_password)
+            server.sendmail(smtp_user, email_to, raw_msg)
+    else:
+        with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
+            server.ehlo()
+            server.starttls()
+            server.ehlo()
+            server.login(smtp_user, smtp_password)
+            server.sendmail(smtp_user, email_to, raw_msg)
+
+
 def send_digest_email(hours: int = 24, top_n: int = 10) -> dict:
     """
     Main entry point called by daily_runner.py.
     Fetches top digests, renders HTML, and sends via Gmail SMTP.
     """
-    smtp_host     = os.getenv("SMTP_HOST", "smtp.gmail.com")
-    smtp_port     = int(os.getenv("SMTP_PORT", "587"))
-    smtp_user     = os.getenv("SMTP_USER", "")
-    smtp_password = os.getenv("SMTP_PASSWORD", "")
-    email_to      = os.getenv("DIGEST_EMAIL_TO", smtp_user)
+    smtp_host     = os.getenv("SMTP_HOST", "smtp.gmail.com").strip() or "smtp.gmail.com"
+    smtp_port     = int(os.getenv("SMTP_PORT", "587") or "587")
+    smtp_user     = os.getenv("SMTP_USER", "").strip()
+    smtp_password = os.getenv("SMTP_PASSWORD", "").strip()
+    email_to      = os.getenv("DIGEST_EMAIL_TO", "").strip() or smtp_user
 
     if not smtp_user or not smtp_password:
         return {
@@ -195,13 +211,16 @@ def send_digest_email(hours: int = 24, top_n: int = 10) -> dict:
     msg["From"]    = smtp_user
     msg["To"]      = email_to
     msg.attach(MIMEText(html_body, "html"))
+    raw_msg = msg.as_string()
 
     try:
-        with smtplib.SMTP(smtp_host, smtp_port) as server:
-            server.ehlo()
-            server.starttls()
-            server.login(smtp_user, smtp_password)
-            server.sendmail(smtp_user, email_to, msg.as_string())
+        try:
+            _send_via_smtp(smtp_host, smtp_port, smtp_user, smtp_password, email_to, raw_msg)
+        except (smtplib.SMTPServerDisconnected, OSError) as first_err:
+            # Fallback between port 587 (STARTTLS) and port 465 (SMTP_SSL)
+            fallback_port = 465 if smtp_port != 465 else 587
+            print(f" SMTP port {smtp_port} failed ({first_err}); retrying on port {fallback_port}...")
+            _send_via_smtp(smtp_host, fallback_port, smtp_user, smtp_password, email_to, raw_msg)
 
         print(f" Email sent to {email_to} with {len(digests)} articles.")
         return {"success": True, "articles_count": len(digests)}
